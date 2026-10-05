@@ -2,9 +2,7 @@
 
 import os
 from pathlib import Path
-from urllib.parse import urlsplit
 
-import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 
@@ -37,17 +35,6 @@ ALLOWED_HOSTS = [
     for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
     if host.strip()
 ]
-render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-if render_hostname:
-    ALLOWED_HOSTS.append(render_hostname)
-
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
-    if origin.strip()
-]
-if render_hostname:
-    CSRF_TRUSTED_ORIGINS.append(f"https://{render_hostname}")
 
 
 # Application definition
@@ -62,29 +49,8 @@ INSTALLED_APPS = [
     'catalogo',
 ]
 
-if not DEBUG:
-    if not os.environ.get("DATABASE_URL"):
-        raise ImproperlyConfigured(
-            "DATABASE_URL precisa apontar para o PostgreSQL em produção."
-        )
-    cloudinary_url = urlsplit(os.environ.get("CLOUDINARY_URL", ""))
-    if not (
-        cloudinary_url.scheme == "cloudinary"
-        and cloudinary_url.username
-        and cloudinary_url.password
-        and cloudinary_url.hostname
-    ):
-        raise ImproperlyConfigured(
-            "Configure CLOUDINARY_URL para armazenar as capas em produção."
-        )
-    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-]
-if not DEBUG:
-    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
-MIDDLEWARE += [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -116,25 +82,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-if os.environ.get("DATABASE_URL"):
-    DATABASES = {
-        "default": dj_database_url.parse(
-            os.environ["DATABASE_URL"],
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-    if not DEBUG and DATABASES["default"]["ENGINE"] != "django.db.backends.postgresql":
-        raise ImproperlyConfigured(
-            "DATABASE_URL deve usar PostgreSQL em produção."
-        )
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 
 # Password validation
@@ -171,28 +124,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-STORAGES = {
-    "default": {
-        "BACKEND": (
-            "cloudinary_storage.storage.MediaCloudinaryStorage"
-            if not DEBUG
-            else "django.core.files.storage.FileSystemStorage"
-        ),
-    },
-    "staticfiles": {
-        "BACKEND": (
-            "whitenoise.storage.CompressedManifestStaticFilesStorage"
-            if not DEBUG
-            else "django.contrib.staticfiles.storage.StaticFilesStorage"
-        ),
-    },
-}
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'catalogo:livros'
@@ -205,8 +140,6 @@ CSRF_COOKIE_HTTPONLY = True
 
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
-if render_hostname:
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -1,7 +1,2 @@
 Django>=5.2,<5.3
 Pillow>=11.3,<13
-dj-database-url>=2.3,<3
-django-cloudinary-storage>=0.3,<0.4
-gunicorn>=23,<24
-psycopg[binary]>=3.2,<4
-whitenoise>=6.9,<7

@@ -3,8 +3,5 @@ __pycache__/
 *.py[cod]
 db.sqlite3
 .django_secret_key
-.env
-.env.*
-!.env.example
 staticfiles/
 media/

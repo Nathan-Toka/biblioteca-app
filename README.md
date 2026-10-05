@@ -41,16 +41,7 @@ Após atualizar o projeto, execute `python manage.py migrate` para criar ou atua
 
 ## Configuração para publicação
 
-O modo padrão é apenas para desenvolvimento local. O projeto inclui um Blueprint `render.yaml` para publicar o serviço no Render. Antes de criar o serviço:
-
-1. Envie o código para um repositório privado no GitHub e conecte-o ao Render.
-2. Crie um PostgreSQL gerenciado e uma conta Cloudinary. Na configuração inicial do Blueprint, informe a URL interna do banco como `DATABASE_URL` e a URL secreta da conta como `CLOUDINARY_URL`; nunca coloque essas credenciais neste repositório.
-3. O Blueprint gera `DJANGO_SECRET_KEY` e define `DJANGO_DEBUG=0`. O comando de publicação instala dependências, coleta arquivos estáticos e aplica migrações.
-4. Escolha os planos de hospedagem e banco no Render antes de confirmar a criação; eles podem gerar custos ou ter limitações de disponibilidade. Configure um domínio próprio depois, se desejar.
-
-Em produção, o projeto exige PostgreSQL e Cloudinary, serve arquivos estáticos com WhiteNoise, armazena novas capas no Cloudinary, redireciona HTTP para HTTPS e envia HSTS por um ano. O Render termina TLS no proxy; a aplicação confia no cabeçalho HTTPS do Render e inclui o domínio `onrender.com` na lista de hosts e origens CSRF. Para um domínio próprio, inclua seu domínio em `DJANGO_ALLOWED_HOSTS` e `DJANGO_CSRF_TRUSTED_ORIGINS` nas variáveis de ambiente do serviço, por exemplo `biblioteca.exemplo.com` e `https://biblioteca.exemplo.com`.
-
-Os dados e capas da instalação local não são copiados automaticamente para os novos serviços: planeje a migração do SQLite e o envio das capas locais antes de abrir o site ao público. Faça e teste backups do banco remoto. Para outros provedores, configure os mesmos requisitos de produção e revise a lista de verificação de implantação do Django.
+O modo padrão é apenas para desenvolvimento local. Antes de publicar, configure `DJANGO_DEBUG=0`, defina `DJANGO_SECRET_KEY` com um segredo aleatório fora do código e restrinja `DJANGO_ALLOWED_HOSTS` aos domínios reais. Com `DJANGO_DEBUG=0`, o Django redireciona requisições HTTP para HTTPS e envia uma política HSTS de um ano nas respostas HTTPS. Portanto, configure e teste o certificado TLS no servidor ou proxy antes de ativar esse modo; se houver um proxy que termina TLS, configure-o para encaminhar corretamente o protocolo HTTPS ao Django. Configure o serviço de publicação para servir os arquivos de mídia enviados (a configuração local `MEDIA_ROOT` não serve mídias em produção). Revise a lista de verificação de implantação do Django. Para publicação com múltiplos usuários simultâneos, substitua o SQLite por PostgreSQL e configure o banco fora do código.
 
 ## Verificações
 
