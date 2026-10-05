@@ -1,0 +1,34 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Início</a>
+    &rsaquo; <a href="{% url 'admin:catalogo_loan_changelist' %}">Empréstimos</a>
+    &rsaquo; Registrar entrega presencial
+</div>
+{% endblock %}
+
+{% block content %}
+    <p>Registre aqui a entrega feita presencialmente pelo administrador. O sistema atualiza a disponibilidade e define o prazo padrão de 30 dias.</p>
+    <form method="post" class="admin-loan-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="loan">
+        {{ form.as_p }}
+        <div class="submit-row">
+            <input type="submit" value="Registrar empréstimo" class="default">
+            <a href="{% url 'admin:catalogo_loan_changelist' %}" class="button cancel-link">Cancelar</a>
+        </div>
+    </form>
+
+    <hr>
+    <h2>Registrar devolução antecipada</h2>
+    <p>O leitor pode devolver o livro antes da data prevista. Escolha o empréstimo ativo recebido presencialmente; o exemplar ficará disponível novamente no acervo.</p>
+    <form method="post" class="admin-loan-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="return">
+        {{ return_form.as_p }}
+        <div class="submit-row">
+            <input type="submit" value="Registrar devolução antecipada" class="default">
+        </div>
+    </form>
+{% endblock %}

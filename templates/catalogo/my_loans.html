@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Meus empréstimos | Biblioteca escolar{% endblock %}
+
+{% block content %}
+    <section class="page-heading">
+        <p class="eyebrow">ÁREA DO LEITOR</p>
+        <h1>Meus empréstimos</h1>
+        <p>Acompanhe os livros retirados e as datas de devolução.</p>
+    </section>
+
+    <section class="loan-summary" aria-label="Resumo dos empréstimos">
+        <article class="summary-card">
+            <span class="summary-number">{{ active_count }}</span>
+            <span class="summary-label">Em andamento</span>
+        </article>
+        <article class="summary-card {% if overdue_count %}summary-card-alert{% endif %}">
+            <span class="summary-number">{{ overdue_count }}</span>
+            <span class="summary-label">Atrasados</span>
+        </article>
+        <article class="summary-card">
+            <span class="summary-number">{{ returned_count }}</span>
+            <span class="summary-label">Devolvidos</span>
+        </article>
+    </section>
+
+    {% if overdue_loans %}
+        <section class="loan-alert loan-alert-overdue" aria-labelledby="overdue-alert-title">
+            <h2 id="overdue-alert-title">Você tem devoluções atrasadas</h2>
+            <p>Devolva estes livros na biblioteca assim que puder:</p>
+            <ul>
+                {% for loan in overdue_loans %}
+                    <li><strong>{{ loan.book.title }}</strong> — prazo em {{ loan.due_date|date:"d/m/Y" }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+
+    {% if upcoming_loans %}
+        <section class="loan-alert loan-alert-upcoming" aria-labelledby="upcoming-alert-title">
+            <h2 id="upcoming-alert-title">Prazo de devolução se aproximando</h2>
+            <p>Confira os empréstimos com devolução prevista nos próximos 7 dias:</p>
+            <ul>
+                {% for loan in upcoming_loans %}
+                    <li>
+                        <strong>{{ loan.book.title }}</strong> —
+                        {% if loan.due_date == today %}vence hoje{% else %}vence em {{ loan.due_date|date:"d/m/Y" }}{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+
+    {% if loans %}
+        <div class="loan-list">
+            {% for loan in loans %}
+                <article class="loan-card">
+                    <div>
+                        <h2>{{ loan.book.title }}</h2>
+                        <p class="book-author">{{ loan.book.author }}</p>
+                        <p class="loan-dates">Emprestado em {{ loan.borrowed_at|date:"d/m/Y" }} · Devolver até {{ loan.due_date|date:"d/m/Y" }}</p>
+                    </div>
+                    {% if loan.returned_at %}
+                        <span class="status-pill status-returned">Devolvido em {{ loan.returned_at|date:"d/m/Y" }}</span>
+                    {% elif loan.due_date < today %}
+                        <span class="status-pill status-overdue">Devolução atrasada</span>
+                    {% elif loan.due_date <= upcoming_deadline %}
+                        <span class="status-pill status-upcoming">{% if loan.due_date == today %}Vence hoje{% else %}Vence em breve{% endif %}</span>
+                    {% else %}
+                        <span class="status-pill status-active">Em andamento</span>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <span class="empty-icon" aria-hidden="true">▤</span>
+            <h3>Você ainda não tem empréstimos</h3>
+            <p>Encontre um livro no acervo e solicite seu primeiro empréstimo.</p>
+            <a class="button button-primary" href="{% url 'catalogo:livros' %}">Explorar o acervo</a>
+        </div>
+    {% endif %}
+{% endblock %}

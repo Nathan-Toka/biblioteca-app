@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Entrar | Biblioteca escolar{% endblock %}
+
+{% block content %}
+    <section class="auth-panel">
+        <p class="eyebrow">BEM-VINDO DE VOLTA</p>
+        <h1>Entrar na biblioteca</h1>
+        <p class="auth-intro">Acesse sua conta para solicitar empréstimos e acompanhar suas leituras.</p>
+        <form method="post" class="stacked-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+            <div class="form-field">
+                <label for="{{ form.username.id_for_label }}">Nome de usuário</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+            <div class="form-field">
+                <label for="{{ form.password.id_for_label }}">Senha</label>
+                {{ form.password }}
+                {{ form.password.errors }}
+            </div>
+            <input type="hidden" name="next" value="{{ next }}">
+            <button class="button button-primary button-full" type="submit">Entrar</button>
+        </form>
+        <p class="auth-switch">Ainda não tem uma conta? <a href="{% url 'catalogo:cadastro' %}?next={{ next|urlencode }}">Cadastre-se</a>.</p>
+    </section>
+{% endblock %}

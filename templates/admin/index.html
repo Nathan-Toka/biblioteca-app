@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'admin-dashboard.css' %}?v=2">
+{% endblock %}
+
+{% block content %}
+    <div id="content-main" class="admin-dashboard">
+        <header class="dashboard-intro">
+            <p class="dashboard-eyebrow">BIBLIOTECA ESCOLAR</p>
+            <h1>{{ title }}</h1>
+            <p>Escolha uma área para acessar rapidamente as ferramentas de administração.</p>
+        </header>
+
+        {% if app_list %}
+            <div class="dashboard-grid">
+                {% for app in app_list %}
+                    <section class="dashboard-card" aria-label="{{ app.name }}">
+                        <h2>{{ app.name }}</h2>
+                        <div class="dashboard-links">
+                            {% for model in app.models %}
+                                <div class="dashboard-link-row">
+                                    <a class="dashboard-model-link" href="{{ model.admin_url }}">{{ model.name }}</a>
+                                    <div class="dashboard-actions">
+                                        {% if model.add_url %}
+                                            <a class="dashboard-action dashboard-add" href="{{ model.add_url }}">Adicionar</a>
+                                        {% endif %}
+                                        {% if model.admin_url %}
+                                            <a class="dashboard-action dashboard-open" href="{{ model.admin_url }}">
+                                                {% if model.view_only %}Visualizar{% else %}Abrir{% endif %}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% if app.app_label == "catalogo" and perms.catalogo.view_loan %}
+                                <a class="dashboard-register-loan" href="{% url 'admin-register-loan' %}">
+                                    Registrar entrega presencial
+                                </a>
+                                <a class="dashboard-register-loan dashboard-report-link" href="{% url 'admin-loan-report' %}">
+                                    Relatórios de empréstimos
+                                </a>
+                            {% endif %}
+                        </div>
+                    </section>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Você não tem permissão para acessar áreas da administração.</p>
+        {% endif %}
+    </div>
+{% endblock %}

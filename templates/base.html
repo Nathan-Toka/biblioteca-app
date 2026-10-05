@@ -1,0 +1,56 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#174c3c">
+    <title>{% block title %}Biblioteca escolar{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'catalogo.css' %}?v=9">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="{% url 'catalogo:livros' %}">
+                <span class="brand-mark" aria-hidden="true">B</span>
+                <span>Biblioteca<span class="brand-light"> escolar</span></span>
+            </a>
+            <nav class="main-nav" aria-label="Navegação principal">
+                <a class="{% if request.resolver_match.url_name == 'livros' %}is-current{% endif %}" href="{% url 'catalogo:livros' %}" {% if request.resolver_match.url_name == 'livros' %}aria-current="page"{% endif %}>Acervo</a>
+                {% if user.is_authenticated %}
+                    <a class="{% if request.resolver_match.url_name == 'meus-emprestimos' %}is-current{% endif %}" href="{% url 'catalogo:meus-emprestimos' %}" {% if request.resolver_match.url_name == 'meus-emprestimos' %}aria-current="page"{% endif %}>Meus empréstimos</a>
+                    <a class="{% if request.resolver_match.url_name == 'minha-conta' or request.resolver_match.url_name == 'alterar-senha' %}is-current{% endif %}" href="{% url 'catalogo:minha-conta' %}" {% if request.resolver_match.url_name == 'minha-conta' or request.resolver_match.url_name == 'alterar-senha' %}aria-current="page"{% endif %}>Minha conta</a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin:index' %}">Administração</a>
+                    {% endif %}
+                    <span class="nav-user" title="{{ user.get_full_name|default:user.username }}">
+                        {{ user.first_name|default:user.username }}
+                    </span>
+                    <form class="nav-form" method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="nav-button" type="submit">Sair</button>
+                    </form>
+                {% else %}
+                    <a class="{% if request.resolver_match.url_name == 'login' %}is-current{% endif %}" href="{% url 'login' %}" {% if request.resolver_match.url_name == 'login' %}aria-current="page"{% endif %}>Entrar</a>
+                    <a class="nav-signup {% if request.resolver_match.url_name == 'cadastro' %}is-current{% endif %}" href="{% url 'catalogo:cadastro' %}" {% if request.resolver_match.url_name == 'cadastro' %}aria-current="page"{% endif %}>Criar conta</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        {% if messages %}
+            <div class="messages" aria-live="polite">
+                {% for message in messages %}
+                    <div class="message message-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">Um espaço para descobrir sua próxima leitura.</div>
+    </footer>
+</body>
+</html>

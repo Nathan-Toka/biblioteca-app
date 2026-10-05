@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Acervo | Biblioteca escolar{% endblock %}
+
+{% block content %}
+    <section class="hero">
+        <div>
+            <p class="eyebrow">LEITURA QUE APROXIMA</p>
+            <h1>Encontre sua próxima história.</h1>
+            <p class="hero-copy">Pesquise no acervo da biblioteca e consulte a disponibilidade dos exemplares.</p>
+            {% if user.is_authenticated %}
+                <a class="hero-link" href="{% url 'catalogo:meus-emprestimos' %}">Acompanhar meus empréstimos <span aria-hidden="true">→</span></a>
+            {% endif %}
+        </div>
+        <div class="hero-decoration" aria-hidden="true">⌕</div>
+    </section>
+
+    <section class="catalog-section" aria-labelledby="catalog-title">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">NOSSO ACERVO</p>
+                <h2 id="catalog-title">Livros</h2>
+            </div>
+            <span class="result-count">{{ books|length }} resultado{{ books|length|pluralize:"s" }}</span>
+        </div>
+
+        <form class="catalog-filters" method="get" role="search">
+            <div class="catalog-filter-search">
+                <label class="visually-hidden" for="book-search">Buscar por título, autor ou categoria</label>
+                <input id="book-search" type="search" name="q" value="{{ query }}" placeholder="Título, autor ou categoria">
+                <button class="button button-primary" type="submit">Buscar livros</button>
+            </div>
+            <div class="catalog-filter-options">
+                <div class="filter-field">
+                    <label for="book-category">Categoria</label>
+                    <select id="book-category" name="category">
+                        <option value="">Todas as categorias</option>
+                        {% for category in categories %}
+                            <option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label for="book-sort">Organizar por</label>
+                    <select id="book-sort" name="sort">
+                        <option value="title" {% if selected_sort == "title" %}selected{% endif %}>Título (A–Z)</option>
+                        <option value="author" {% if selected_sort == "author" %}selected{% endif %}>Autor (A–Z)</option>
+                    </select>
+                </div>
+                <button class="button button-filter" type="submit">Aplicar filtros</button>
+                {% if query or selected_category or selected_sort != "title" %}
+                    <a class="clear-filters" href="{% url 'catalogo:livros' %}">Limpar filtros</a>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if books %}
+            <div class="book-grid">
+                {% for book in books %}
+                    <article class="book-card">
+                        <div class="book-cover">
+                            {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}" alt="Capa de {{ book.title }}" loading="lazy">
+                            {% else %}
+                                <span aria-hidden="true">✳</span>
+                            {% endif %}
+                        </div>
+                        <div class="book-content">
+                            {% if book.category %}<span class="book-category">{{ book.category }}</span>{% endif %}
+                            <h3><a class="book-title-link" href="{% url 'catalogo:detalhe-livro' book.id %}">{{ book.title }}</a></h3>
+                            <p class="book-author">por {{ book.author }}</p>
+                            {% if book.review_count %}
+                                <a class="catalog-rating" href="{% url 'catalogo:detalhe-livro' book.id %}#avaliacoes" aria-label="Média {{ book.average_rating|floatformat:1 }} de 5 estrelas, {{ book.review_count }} {% if book.review_count == 1 %}avaliação{% else %}avaliações{% endif %}">
+                                    <span aria-hidden="true">★</span>
+                                    <strong>{{ book.average_rating|floatformat:1 }}</strong>
+                                    <small>({{ book.review_count }})</small>
+                                </a>
+                            {% endif %}
+                            {% if book.description %}<p class="book-description">{{ book.description|truncatewords:28 }}</p>{% endif %}
+                            {% if book.available_copies %}
+                                <p class="availability"><span class="availability-dot"></span>{{ book.available_copies }} {% if book.available_copies == 1 %}disponível{% else %}disponíveis{% endif %}</p>
+                            {% else %}
+                                <p class="availability unavailable"><span class="availability-dot"></span>Indisponível no momento</p>
+                                <p class="contact-note">Converse presencialmente com o administrador da biblioteca.</p>
+                            {% endif %}
+                            {% if book.shelf_location %}
+                                <p class="shelf-location">Estante: {{ book.shelf_location }}</p>
+                            {% endif %}
+                            {% if book.available_copies %}
+                                {% if user.is_authenticated %}
+                                    <form method="post" action="{% url 'catalogo:solicitar-emprestimo' book.id %}">
+                                        {% csrf_token %}
+                                        <button class="button button-outline" type="submit">Solicitar empréstimo</button>
+                                    </form>
+                                {% else %}
+                                    <a class="button button-outline" href="{% url 'login' %}?next={{ request.path }}">Entre para solicitar</a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <span class="empty-icon" aria-hidden="true">⌕</span>
+                <h3>Nenhum livro encontrado</h3>
+                <p>Tente buscar por outro título, autor ou categoria.</p>
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} | Biblioteca escolar{% endblock %}
+
+{% block content %}
+    <nav class="detail-breadcrumbs" aria-label="Navegação estrutural">
+        <a href="{% url 'catalogo:livros' %}">Acervo</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">{{ book.title }}</span>
+    </nav>
+
+    <article class="book-detail">
+        <div class="book-detail-cover">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" alt="Capa de {{ book.title }}">
+            {% else %}
+                <span aria-hidden="true">✳</span>
+            {% endif %}
+        </div>
+        <div class="book-detail-content">
+            <p class="eyebrow">DETALHES DO LIVRO</p>
+            {% if book.category %}<span class="book-category">{{ book.category }}</span>{% endif %}
+            <h1>{{ book.title }}</h1>
+            <p class="book-detail-author">por {{ book.author }}</p>
+            {% if review_count %}
+                <a class="book-rating-summary" href="#avaliacoes" aria-label="Média {{ average_rating|floatformat:1 }} de 5 estrelas, {{ review_count }} {% if review_count == 1 %}avaliação{% else %}avaliações{% endif %}">
+                    <span class="rating-stars" aria-hidden="true">★</span>
+                    <strong>{{ average_rating|floatformat:1 }}</strong>
+                    <span>{{ review_count }} {% if review_count == 1 %}avaliação{% else %}avaliações{% endif %}</span>
+                </a>
+            {% else %}
+                <a class="book-rating-summary rating-summary-empty" href="#avaliacoes">Ainda sem avaliações · seja a primeira pessoa a avaliar</a>
+            {% endif %}
+
+            {% if book.description %}
+                <section class="book-detail-section">
+                    <h2>Sobre este livro</h2>
+                    <p class="book-description-full">{{ book.description|linebreaksbr }}</p>
+                </section>
+            {% endif %}
+
+            <dl class="book-detail-facts">
+                <div>
+                    <dt>Exemplares disponíveis</dt>
+                    <dd>{{ book.available_copies }} de {{ book.total_copies }}</dd>
+                </div>
+                {% if book.shelf_location %}
+                    <div>
+                        <dt>Localização na estante</dt>
+                        <dd>{{ book.shelf_location }}</dd>
+                    </div>
+                {% endif %}
+            </dl>
+
+            {% if book.available_copies %}
+                <p class="availability"><span class="availability-dot"></span>Disponível para empréstimo · prazo de 30 dias</p>
+                {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'catalogo:solicitar-emprestimo' book.id %}">
+                        {% csrf_token %}
+                        <button class="button button-primary detail-loan-button" type="submit">Solicitar empréstimo</button>
+                    </form>
+                {% else %}
+                    <a class="button button-primary detail-loan-button" href="{% url 'login' %}?next={{ request.path }}">Entre para solicitar</a>
+                {% endif %}
+            {% else %}
+                <p class="availability unavailable"><span class="availability-dot"></span>Indisponível no momento</p>
+                <p class="contact-note">Converse presencialmente com o administrador da biblioteca para demonstrar interesse.</p>
+            {% endif %}
+        </div>
+    </article>
+
+    <section id="avaliacoes" class="reviews-section" aria-labelledby="reviews-title">
+        <div class="reviews-heading">
+            <div>
+                <p class="eyebrow">OPINIÃO DOS LEITORES</p>
+                <h2 id="reviews-title">Avaliações</h2>
+            </div>
+            {% if review_count %}
+                <span class="reviews-count">{{ review_count }} {% if review_count == 1 %}avaliação{% else %}avaliações{% endif %}</span>
+            {% endif %}
+        </div>
+
+        {% if user.is_authenticated %}
+            <form class="review-form" method="post" action="{% url 'catalogo:avaliar-livro' book.id %}">
+                {% csrf_token %}
+                <h3>{% if reader_review %}Edite sua avaliação{% else %}Avalie este livro{% endif %}</h3>
+                <div class="review-rating-field">
+                    <span class="review-field-label">{{ review_form.rating.label }}</span>
+                    <div class="rating-options">
+                        {% for radio in review_form.rating %}
+                            <label class="rating-option">
+                                {{ radio.tag }}
+                                <span class="rating-star" aria-hidden="true">★</span>
+                                <span class="visually-hidden">{{ radio.choice_label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    {{ review_form.rating.errors }}
+                </div>
+                <div class="form-field review-comment-field">
+                    <label for="{{ review_form.comment.id_for_label }}">{{ review_form.comment.label }}</label>
+                    {{ review_form.comment }}
+                    <small class="help-text">Até 2.000 caracteres. Sua avaliação aparecerá publicamente.</small>
+                    {{ review_form.comment.errors }}
+                </div>
+                <button class="button button-primary" type="submit">
+                    {% if reader_review %}Atualizar avaliação{% else %}Publicar avaliação{% endif %}
+                </button>
+            </form>
+        {% else %}
+            <div class="review-login-prompt">
+                <p>Entre na sua conta para avaliar este livro.</p>
+                <a class="button button-outline" href="{% url 'login' %}?next={{ request.path|urlencode }}">Entrar para avaliar</a>
+            </div>
+        {% endif %}
+
+        {% if reviews %}
+            <div class="review-list">
+                {% for review in reviews %}
+                    <article class="review-card">
+                        <div class="review-card-heading">
+                            <div>
+                                <h3>{{ review.reader.get_full_name|default:review.reader.username }}</h3>
+                                <p class="review-date">Atualizada em {{ review.updated_at|date:"d/m/Y" }}</p>
+                            </div>
+                            <span class="review-stars" aria-label="{{ review.rating }} de 5 estrelas">
+                                <span aria-hidden="true">{% for star in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+                                <strong>{{ review.rating }}/5</strong>
+                            </span>
+                        </div>
+                        <p class="review-comment">{{ review.comment|linebreaksbr }}</p>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="reviews-empty">
+                <span class="empty-icon" aria-hidden="true">☆</span>
+                <h3>Este livro ainda não recebeu avaliações</h3>
+                <p>Compartilhe sua opinião para ajudar outros leitores.</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <a class="back-to-catalog" href="{% url 'catalogo:livros' %}">← Voltar ao acervo</a>
+{% endblock %}

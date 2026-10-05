@@ -1,0 +1,149 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'admin-reports.css' %}?v=3">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Início</a>
+    &rsaquo; <a href="{% url 'admin:catalogo_loan_changelist' %}">Empréstimos</a>
+    &rsaquo; Relatórios
+</div>
+{% endblock %}
+
+{% block content %}
+    <div id="content-main" class="loan-report">
+        <header class="report-heading">
+            <p class="report-eyebrow">BIBLIOTECA ESCOLAR</p>
+            <h1>Relatório de empréstimos</h1>
+            <p>Consulte a situação dos empréstimos e exporte os resultados filtrados para CSV.</p>
+        </header>
+
+        <section class="report-summary" aria-label="Resumo dos resultados filtrados">
+            <article class="report-metric">
+                <span class="report-metric-number">{{ total_count }}</span>
+                <span class="report-metric-label">Encontrados</span>
+            </article>
+            <article class="report-metric">
+                <span class="report-metric-number">{{ active_count }}</span>
+                <span class="report-metric-label">Em andamento</span>
+            </article>
+            <article class="report-metric {% if overdue_count %}report-metric-alert{% endif %}">
+                <span class="report-metric-number">{{ overdue_count }}</span>
+                <span class="report-metric-label">Atrasados</span>
+            </article>
+            <article class="report-metric">
+                <span class="report-metric-number">{{ returned_count }}</span>
+                <span class="report-metric-label">Devolvidos</span>
+            </article>
+        </section>
+
+        <form class="report-filters" method="get">
+            <div class="report-filter-field report-filter-search">
+                {{ form.q.label_tag }}
+                {{ form.q }}
+                {{ form.q.errors }}
+            </div>
+            <div class="report-filter-field">
+                {{ form.status.label_tag }}
+                {{ form.status }}
+                {{ form.status.errors }}
+            </div>
+            <div class="report-filter-field">
+                {{ form.start_date.label_tag }}
+                {{ form.start_date }}
+                {{ form.start_date.errors }}
+            </div>
+            <div class="report-filter-field">
+                {{ form.end_date.label_tag }}
+                {{ form.end_date }}
+                {{ form.end_date.errors }}
+            </div>
+            <div class="report-filter-actions">
+                <button type="submit" class="button default">Aplicar filtros</button>
+                <a href="{% url 'admin-loan-report' %}" class="report-clear">Limpar</a>
+            </div>
+        </form>
+
+        <div class="report-list-heading">
+            <div>
+                <h2>Empréstimos</h2>
+                <p>
+                    {% if page_obj.paginator.count %}
+                        Mostrando {{ page_obj.start_index }}–{{ page_obj.end_index }} de {{ total_count }} resultado{{ total_count|pluralize:"s" }}.
+                    {% else %}
+                        Nenhum empréstimo corresponde aos filtros.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="report-export-area">
+                {% if export_error %}
+                    <p class="report-export-error" role="alert">{{ export_error }}</p>
+                {% endif %}
+                <a
+                    class="report-export"
+                    href="{% querystring export='csv' %}"
+                    download="relatorio-emprestimos-{{ today|date:'Ymd' }}.csv"
+                >Exportar resultados CSV</a>
+            </div>
+        </div>
+
+        {% if page_obj.object_list %}
+            <div class="report-table-wrap">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Leitor</th>
+                            <th scope="col">Livro</th>
+                            <th scope="col">Emprestado em</th>
+                            <th scope="col">Devolução prevista</th>
+                            <th scope="col">Situação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in page_obj %}
+                            <tr>
+                                <td>
+                                    <strong>{{ loan.reader.get_full_name|default:loan.reader.username }}</strong>
+                                    <span class="report-username">{{ loan.reader.username }}</span>
+                                </td>
+                                <td>{{ loan.book.title }}<span class="report-book-author">{{ loan.book.author }}</span></td>
+                                <td>{{ loan.borrowed_at|date:"d/m/Y H:i" }}</td>
+                                <td>{{ loan.due_date|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if loan.returned_at %}
+                                        <span class="report-status report-status-returned">Devolvido</span>
+                                    {% elif loan.due_date < today %}
+                                        <span class="report-status report-status-overdue">Atrasado</span>
+                                    {% else %}
+                                        <span class="report-status report-status-active">Em andamento</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="report-empty">
+                <h3>Nenhum resultado para mostrar</h3>
+                <p>Altere os filtros ou limpe a busca para consultar outros empréstimos.</p>
+            </div>
+        {% endif %}
+
+        {% if page_obj.has_other_pages %}
+            <nav class="report-pagination" aria-label="Paginação do relatório">
+                {% if page_obj.has_previous %}
+                    <a href="{% querystring page=page_obj.previous_page_number %}">Anterior</a>
+                {% endif %}
+                <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="{% querystring page=page_obj.next_page_number %}">Próxima</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,144 @@
+#content-main.admin-dashboard {
+    max-width: 1040px;
+}
+
+.dashboard-intro {
+    margin: 4px 0 26px;
+}
+
+.dashboard-intro .dashboard-eyebrow {
+    margin: 0 0 7px;
+    color: #648873;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+}
+
+.dashboard-intro h1 {
+    margin: 0 0 8px;
+    color: #234a37;
+    font-size: 26px;
+    font-weight: 500;
+}
+
+.dashboard-intro > p:last-child {
+    margin: 0;
+    color: #65736b;
+    font-size: 13px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 18px;
+}
+
+.dashboard-card {
+    overflow: hidden;
+    border: 1px solid #dce5dd;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 3px 12px rgb(25 48 34 / 4%);
+}
+
+.dashboard-card h2 {
+    margin: 0;
+    padding: 13px 17px;
+    background: #174c3c;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.dashboard-links {
+    padding: 5px 17px 13px;
+}
+
+.dashboard-link-row {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid #edf0ed;
+}
+
+.dashboard-card .dashboard-model-link:link,
+.dashboard-card .dashboard-model-link:visited {
+    color: #174c3c !important;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.dashboard-card .dashboard-model-link:hover,
+.dashboard-card .dashboard-action:hover,
+.dashboard-card .dashboard-register-loan:hover {
+    color: #10382d !important;
+    text-decoration: underline;
+}
+
+.dashboard-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 13px;
+}
+
+.dashboard-card .dashboard-action:link,
+.dashboard-card .dashboard-action:visited,
+.dashboard-card .dashboard-register-loan:link,
+.dashboard-card .dashboard-register-loan:visited {
+    color: #174c3c !important;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.dashboard-add::before {
+    content: "+ ";
+    color: #28713e;
+    font-weight: 700;
+}
+
+.dashboard-open::before {
+    content: "↗ ";
+    color: #526057;
+}
+
+.dashboard-register-loan {
+    display: inline-flex;
+    margin-top: 13px;
+    padding: 8px 11px;
+    border: 1px solid #c9d8cd;
+    border-radius: 5px;
+    background: #f3f7f3;
+    color: #174c3c;
+    font-weight: 600;
+}
+
+@media (max-width: 520px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-card h2 {
+        padding-right: 13px;
+        padding-left: 13px;
+    }
+
+    .dashboard-links {
+        padding-right: 13px;
+        padding-left: 13px;
+    }
+
+    .dashboard-link-row {
+        align-items: flex-start;
+        flex-direction: column;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 0;
+    }
+
+    .dashboard-actions {
+        gap: 16px;
+    }
+}

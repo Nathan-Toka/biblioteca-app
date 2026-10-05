@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Minha conta | Biblioteca escolar{% endblock %}
+
+{% block content %}
+    <section class="auth-panel auth-panel-wide account-panel">
+        <p class="eyebrow">ÁREA DO LEITOR</p>
+        <h1>Minha conta</h1>
+        <p class="auth-intro">Atualize seu nome e e-mail. Seu nome de usuário é usado para entrar e não pode ser alterado aqui.</p>
+
+        <div class="account-username">
+            <span>Nome de usuário</span>
+            <strong>{{ user.username }}</strong>
+        </div>
+
+        <form method="post" class="stacked-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <button class="button button-primary button-full" type="submit">Salvar alterações</button>
+        </form>
+
+        <section class="password-card">
+            <div>
+                <h2>Senha</h2>
+                <p>Altere sua senha confirmando a senha atual.</p>
+            </div>
+            <a class="button button-outline" href="{% url 'catalogo:alterar-senha' %}">Alterar senha</a>
+        </section>
+    </section>
+{% endblock %}

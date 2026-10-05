@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Criar conta | Biblioteca escolar{% endblock %}
+
+{% block content %}
+    <section class="auth-panel auth-panel-wide">
+        <p class="eyebrow">NOVO LEITOR</p>
+        <h1>Crie sua conta</h1>
+        <p class="auth-intro">Preencha seus dados para começar a explorar o acervo.</p>
+        <form method="post" class="stacked-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% for field in form %}
+                <div class="form-field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small class="help-text">{{ field.help_text|safe }}</small>{% endif %}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <button class="button button-primary button-full" type="submit">Criar minha conta</button>
+        </form>
+        <p class="auth-switch">Já tem uma conta? <a href="{% url 'login' %}?next={{ next|urlencode }}">Entre aqui</a>.</p>
+    </section>
+{% endblock %}
